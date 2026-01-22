@@ -13,6 +13,8 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard>
+  
+
     with SingleTickerProviderStateMixin {
   UserLogin userLogin = UserLogin();
   String? nama;
@@ -126,10 +128,7 @@ class _DashboardState extends State<Dashboard>
       duration: const Duration(milliseconds: 800),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     getUserLogin();
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -163,6 +162,108 @@ class _DashboardState extends State<Dashboard>
       }
     }
   }
+
+  void _showLogoutConfirmation(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black54,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.logout,
+                  size: 48,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Konfirmasi Logout',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Apakah Anda yakin ingin keluar dari aplikasi?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey[600],
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Batal'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 120,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // Clear user login data
+                        await userLogin.clearUserLogin();
+                        
+                        // Navigate to login page
+                        if (mounted) {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   void _showAddProductDialog() {
     showModalBottomSheet(
@@ -305,7 +406,7 @@ class _DashboardState extends State<Dashboard>
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
@@ -364,10 +465,7 @@ class _DashboardState extends State<Dashboard>
                 const SizedBox(height: 12),
                 Text(
                   'Produk telah berhasil ditambahkan ke katalog.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -411,10 +509,7 @@ class _DashboardState extends State<Dashboard>
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             ),
           ],
         ),
@@ -452,10 +547,7 @@ class _DashboardState extends State<Dashboard>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(0.1),
-              color.withOpacity(0.05),
-            ],
+            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withOpacity(0.2), width: 1),
@@ -502,7 +594,9 @@ class _DashboardState extends State<Dashboard>
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: percentChange > 0 ? Colors.green : Colors.red,
+                            color: percentChange > 0
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         ),
                       ],
@@ -600,12 +694,17 @@ class _DashboardState extends State<Dashboard>
                             _buildTag(product['category'], Colors.blue),
                             const SizedBox(width: 8),
                             _buildTag(
-                                'Stok: ${product['stock']}', Colors.green),
+                              'Stok: ${product['stock']}',
+                              Colors.green,
+                            ),
                             const SizedBox(width: 8),
                             Row(
                               children: [
-                                const Icon(Icons.star,
-                                    size: 16, color: Colors.amber),
+                                const Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: Colors.amber,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(product['rating'].toString()),
                               ],
@@ -625,8 +724,11 @@ class _DashboardState extends State<Dashboard>
                             color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.edit,
-                              size: 20, color: Colors.blue),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 20,
+                            color: Colors.blue,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -637,8 +739,11 @@ class _DashboardState extends State<Dashboard>
                             color: Colors.red.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.delete,
-                              size: 20, color: Colors.red),
+                          child: const Icon(
+                            Icons.delete,
+                            size: 20,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
                     ],
@@ -650,8 +755,7 @@ class _DashboardState extends State<Dashboard>
               top: 12,
               right: 12,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: product['stock'] > 10
                       ? Colors.green.withOpacity(0.15)
@@ -694,7 +798,9 @@ class _DashboardState extends State<Dashboard>
 
   String _formatCurrency(int amount) {
     return amount.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
   }
 
   void _showEditProductDialog(Map<String, dynamic> product) {
@@ -713,9 +819,7 @@ class _DashboardState extends State<Dashboard>
       backgroundColor: const Color(0xFFF8FAFC),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF6366F1),
-              ),
+              child: CircularProgressIndicator(color: Color(0xFF6366F1)),
             )
           : FadeTransition(
               opacity: _fadeAnimation,
@@ -743,8 +847,11 @@ class _DashboardState extends State<Dashboard>
                                 colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                               ),
                             ),
-                            child: const Icon(Icons.dashboard,
-                                color: Colors.white, size: 24),
+                            child: const Icon(
+                              Icons.dashboard,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           const Column(
@@ -781,22 +888,25 @@ class _DashboardState extends State<Dashboard>
                             color: Colors.grey[100],
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.notifications,
-                              color: Colors.grey),
+                          child: const Icon(
+                            Icons.notifications,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/login');
-                        },
+                        onPressed: () => _showLogoutConfirmation(context),
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.red[100],
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.logout_outlined, color: Colors.red),
+                          child: const Icon(
+                            Icons.logout_outlined,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -819,7 +929,9 @@ class _DashboardState extends State<Dashboard>
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFF6366F1,
+                                  ).withOpacity(0.3),
                                   blurRadius: 30,
                                   spreadRadius: 5,
                                 ),
@@ -858,14 +970,18 @@ class _DashboardState extends State<Dashboard>
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.verified,
-                                                size: 14, color: Colors.white),
+                                            const Icon(
+                                              Icons.verified,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
                                             const SizedBox(width: 6),
                                             Text(
                                               role?.toUpperCase() ?? 'ADMIN',
@@ -891,7 +1007,9 @@ class _DashboardState extends State<Dashboard>
                                       width: 3,
                                     ),
                                     image: const DecorationImage(
-                                      image: AssetImage('assets/images/profile.png'),
+                                      image: AssetImage(
+                                        'assets/images/profile.png',
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -986,10 +1104,9 @@ class _DashboardState extends State<Dashboard>
                                       borderData: FlBorderData(show: false),
                                       lineBarsData: [
                                         LineChartBarData(
-                                          spots: salesData
-                                              .asMap()
-                                              .entries
-                                              .map((entry) {
+                                          spots: salesData.asMap().entries.map((
+                                            entry,
+                                          ) {
                                             return FlSpot(
                                               entry.key.toDouble(),
                                               entry.value['sales'].toDouble(),
@@ -1001,8 +1118,9 @@ class _DashboardState extends State<Dashboard>
                                           isStrokeCapRound: true,
                                           belowBarData: BarAreaData(
                                             show: true,
-                                            color: const Color(0xFF6366F1)
-                                                .withOpacity(0.1),
+                                            color: const Color(
+                                              0xFF6366F1,
+                                            ).withOpacity(0.1),
                                           ),
                                           dotData: FlDotData(show: false),
                                         ),
@@ -1019,13 +1137,15 @@ class _DashboardState extends State<Dashboard>
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: salesData
-                                      .map((data) => Text(
-                                            data['month'],
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 12,
-                                            ),
-                                          ))
+                                      .map(
+                                        (data) => Text(
+                                          data['month'],
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      )
                                       .toList(),
                                 ),
                               ],
@@ -1069,7 +1189,6 @@ class _DashboardState extends State<Dashboard>
 
                           // Products List
                           // ...products.map(_buildProductCard).toList(),
-
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -1083,9 +1202,7 @@ class _DashboardState extends State<Dashboard>
         backgroundColor: const Color(0xFF6366F1),
         foregroundColor: Colors.white,
         elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: const Icon(Icons.add),
         label: const Text('Tambah Produk'),
       ),
