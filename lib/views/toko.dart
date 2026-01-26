@@ -128,6 +128,18 @@ class _TokoState extends State<Toko> {
   String _sortBy = 'terbaru';
   final TextEditingController _searchController = TextEditingController();
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  // @override
+  // void initState(){
+  //   super.initState();
+  //   _animationController = AnimationController(
+  //     vsync: ,
+  //     duration: const Duration(milliseconds: 800),
+  //   );
+  // }
+
   List<Map<String, dynamic>> get _filteredProducts {
     List<Map<String, dynamic>> filtered = List.from(_products);
 
@@ -146,6 +158,9 @@ class _TokoState extends State<Toko> {
           )
           .toList();
     }
+
+    
+
 
     switch (_sortBy) {
       case 'terbaru':
