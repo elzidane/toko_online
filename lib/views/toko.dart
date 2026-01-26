@@ -190,6 +190,7 @@ class _TokoState extends State<Toko> {
       'total_revenue': totalRevenue,
     };
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -1302,6 +1303,7 @@ class _TokoState extends State<Toko> {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white
                     ),
                   ),
                 ),

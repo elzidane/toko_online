@@ -113,7 +113,7 @@ class _DashboardState extends State<Dashboard>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 10),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -1083,13 +1083,13 @@ class _DashboardState extends State<Dashboard>
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.10)
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.white.withOpacity(0.1),
-                                  blurRadius: 20,
-                                  spreadRadius: 2,
-                                ),
-                              ],
+                              // boxShadow: [
+                              //   BoxShadow(
+                              //     color: Colors.white.withOpacity(0.1),
+                              //     blurRadius: 20,
+                              //     spreadRadius: 2,
+                              //   ),
+                              // ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1168,7 +1168,7 @@ class _DashboardState extends State<Dashboard>
                             ),
                           ),
 
-                          const SizedBox(height: 24),
+                          // const SizedBox(height: 24),
 
                           // Products Header
                           // Row(
