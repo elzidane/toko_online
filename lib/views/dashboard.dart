@@ -27,16 +27,6 @@ class _DashboardState extends State<Dashboard>
 
   List<Map<String, dynamic>> products = [
     {
-      'id': 1,
-      'name': 'MacBook Pro M2',
-      'price': 25000000,
-      'stock': 8,
-      'category': 'Elektronik',
-      'image': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8',
-      'rating': 4.8,
-      'sold': 42,
-    },
-    {
       'id': 2,
       'name': 'iPhone 15 Pro Max',
       'price': 22000000,
@@ -170,7 +160,7 @@ class _DashboardState extends State<Dashboard>
           backgroundColor: Colors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(24),
             ),
             padding: const EdgeInsets.all(32),
@@ -193,12 +183,17 @@ class _DashboardState extends State<Dashboard>
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Poppins',
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Apakah Anda yakin ingin keluar dari aplikasi?',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'poppins',
+                    color: Colors.white,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -217,7 +212,14 @@ class _DashboardState extends State<Dashboard>
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Batal'),
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontFamily: 'poppins',
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -245,6 +247,7 @@ class _DashboardState extends State<Dashboard>
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
+                            fontFamily: 'poppins',
                           ),
                         ),
                       ),
@@ -272,7 +275,7 @@ class _DashboardState extends State<Dashboard>
           builder: (_, controller) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: Color(0xFF1E293B),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
               child: Column(
@@ -297,6 +300,7 @@ class _DashboardState extends State<Dashboard>
                             fontSize: 22,
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                         IconButton(
@@ -316,6 +320,7 @@ class _DashboardState extends State<Dashboard>
                             icon: Icons.shopping_bag,
                             label: 'Nama Produk',
                             hint: 'Masukkan nama produk',
+                            keyboardType: TextInputType.text,
                           ),
                           const SizedBox(height: 20),
                           _buildFormField(
@@ -359,22 +364,24 @@ class _DashboardState extends State<Dashboard>
                                 Icon(
                                   Icons.cloud_upload,
                                   size: 48,
-                                  color: Colors.grey[400],
+                                  color: Colors.white,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   'Upload Gambar Produk',
                                   style: TextStyle(
-                                    color: Colors.grey[600],
+                                    color: Colors.white,
                                     fontSize: 16,
+                                    fontFamily: 'poppins',
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Drag & drop atau klik untuk upload',
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: Colors.white,
                                     fontSize: 12,
+                                    fontFamily: 'poppins',
                                   ),
                                 ),
                               ],
@@ -503,7 +510,12 @@ class _DashboardState extends State<Dashboard>
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                fontFamily: 'poppins',
+                color: Colors.white
+              ),
             ),
           ],
         ),
@@ -517,6 +529,10 @@ class _DashboardState extends State<Dashboard>
             keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.grey[600],
+                fontFamily: 'poppins'
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
             ),
@@ -603,7 +619,7 @@ class _DashboardState extends State<Dashboard>
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.grey[400],
                 fontFamily: 'Poppins',
               ),
             ),
@@ -614,6 +630,7 @@ class _DashboardState extends State<Dashboard>
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Poppins',
+                color: Colors.white
               ),
             ),
           ],
@@ -810,7 +827,7 @@ class _DashboardState extends State<Dashboard>
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Color(0xFF1E293B),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF6366F1)),
@@ -826,7 +843,7 @@ class _DashboardState extends State<Dashboard>
                     collapsedHeight: 60,
                     floating: true,
                     pinned: true,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Color(0xFF1E293B),
                     elevation: 0,
                     flexibleSpace: FlexibleSpaceBar(
                       titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
@@ -858,7 +875,7 @@ class _DashboardState extends State<Dashboard>
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Poppins',
-                                  color: Colors.black,
+                                  color: Colors.white,
                                 ),
                               ),
                               Text(
@@ -866,6 +883,7 @@ class _DashboardState extends State<Dashboard>
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
+                                  fontFamily: 'poppins'
                                 ),
                               ),
                             ],
@@ -1060,11 +1078,14 @@ class _DashboardState extends State<Dashboard>
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Color(0xFF8B5CF6).withOpacity(0.10),
                               borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.10)
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.white.withOpacity(0.1),
                                   blurRadius: 20,
                                   spreadRadius: 2,
                                 ),
@@ -1083,9 +1104,10 @@ class _DashboardState extends State<Dashboard>
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         fontFamily: 'Poppins',
+                                        color: Colors.white
                                       ),
                                     ),
-                                    Icon(Icons.more_vert, color: Colors.grey),
+                                    Icon(Icons.more_vert, color: Colors.white),
                                   ],
                                 ),
                                 const SizedBox(height: 20),
@@ -1107,14 +1129,13 @@ class _DashboardState extends State<Dashboard>
                                             );
                                           }).toList(),
                                           isCurved: true,
-                                          color: const Color(0xFF6366F1),
+                                          color: Colors.white,
                                           barWidth: 4,
                                           isStrokeCapRound: true,
                                           belowBarData: BarAreaData(
                                             show: true,
-                                            color: const Color(
-                                              0xFF6366F1,
-                                            ).withOpacity(0.1),
+                                            color: Colors.white
+                                            .withOpacity(0.1),
                                           ),
                                           dotData: FlDotData(show: false),
                                         ),
@@ -1135,8 +1156,9 @@ class _DashboardState extends State<Dashboard>
                                         (data) => Text(
                                           data['month'],
                                           style: TextStyle(
-                                            color: Colors.grey[600],
+                                            color: Colors.white,
                                             fontSize: 12,
+                                            fontFamily: 'poppins'
                                           ),
                                         ),
                                       )
@@ -1149,35 +1171,35 @@ class _DashboardState extends State<Dashboard>
                           const SizedBox(height: 24),
 
                           // Products Header
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Produk Terbaru',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: _showAddProductDialog,
-                                icon: const Icon(Icons.add, size: 18),
-                                label: const Text('Tambah Produk'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6366F1),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //   children: [
+                          //     const Text(
+                          //       'Produk Terbaru',
+                          //       style: TextStyle(
+                          //         fontSize: 18,
+                          //         fontWeight: FontWeight.bold,
+                          //         fontFamily: 'Poppins',
+                          //       ),
+                          //     ),
+                          //     ElevatedButton.icon(
+                          //       onPressed: _showAddProductDialog,
+                          //       icon: const Icon(Icons.add, size: 18),
+                          //       label: const Text('Tambah Produk'),
+                          //       style: ElevatedButton.styleFrom(
+                          //         backgroundColor: const Color(0xFF6366F1),
+                          //         foregroundColor: Colors.white,
+                          //         shape: RoundedRectangleBorder(
+                          //           borderRadius: BorderRadius.circular(12),
+                          //         ),
+                          //         padding: const EdgeInsets.symmetric(
+                          //           horizontal: 20,
+                          //           vertical: 12,
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
 
                           const SizedBox(height: 16),
 

@@ -17,11 +17,9 @@ class Bottomnav extends StatefulWidget {
 class _BottomnavState extends State<Bottomnav> {
   UserLogin userLogin = UserLogin();
   String? role;
-  
+
   int currentIndex = 0;
-  List<Widget> navbar = [
-    
-  ];
+  List<Widget> navbar = [];
   List<BottomNavigationBarItem> navbarItems = [];
 
   getDataLogin() async {
@@ -83,30 +81,25 @@ class _BottomnavState extends State<Bottomnav> {
   @override
   Widget build(BuildContext context) {
     if (navbar.isEmpty) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       body: navbar[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.blue[600],
+        
+        selectedItemColor: const Color.fromARGB(255, 123, 97, 255),
         unselectedItemColor: Colors.grey,
         selectedLabelStyle: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
           fontFamily: 'poppins',
         ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 12,
-          fontFamily: 'poppins',
-        ),
+        unselectedLabelStyle: TextStyle(fontSize: 12, fontFamily: 'poppins'),
         currentIndex: currentIndex,
         onTap: onTap,
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        
+        backgroundColor: Color(0xFF1E293B),
         items: navbarItems,
       ),
     );
