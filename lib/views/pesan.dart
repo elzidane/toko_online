@@ -11,8 +11,15 @@ class Pesan extends StatefulWidget {
 
 class _PesanState extends State<Pesan> {
   int _selectedFilter = 0;
-  final List<String> _filterOptions = ['Semua', 'Pending', 'Diproses', 'Dikirim', 'Selesai', 'Dibatalkan'];
-  
+  final List<String> _filterOptions = [
+    'Semua',
+    'Pending',
+    'Diproses',
+    'Dikirim',
+    'Selesai',
+    'Dibatalkan',
+  ];
+
   final List<Map<String, dynamic>> _orders = [
     {
       'id': 'ORD-2024-001',
@@ -220,7 +227,7 @@ class _PesanState extends State<Pesan> {
         _orders[orderIndex]['status'] = newStatus;
       }
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Status pesanan berhasil diperbarui'),
@@ -283,38 +290,57 @@ class _PesanState extends State<Pesan> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: EdgeInsets.all(10),
-                        child: Icon(Icons.shopping_bag_outlined, color: Colors.white),
+                        child: Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
-                  
+
                   // Quick Stats
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMiniStat('Pending', 
-                        _orders.where((o) => o['status'] == 'pending').length.toString(),
-                        Color(0xFFF59E0B)
+                      _buildMiniStat(
+                        'Pending',
+                        _orders
+                            .where((o) => o['status'] == 'pending')
+                            .length
+                            .toString(),
+                        Color(0xFFF59E0B),
                       ),
-                      _buildMiniStat('Diproses', 
-                        _orders.where((o) => o['status'] == 'processed').length.toString(),
-                        Color(0xFF3B82F6)
+                      _buildMiniStat(
+                        'Diproses',
+                        _orders
+                            .where((o) => o['status'] == 'processed')
+                            .length
+                            .toString(),
+                        Color(0xFF3B82F6),
                       ),
-                      _buildMiniStat('Dikirim', 
-                        _orders.where((o) => o['status'] == 'shipped').length.toString(),
-                        Color(0xFF8B5CF6)
+                      _buildMiniStat(
+                        'Dikirim',
+                        _orders
+                            .where((o) => o['status'] == 'shipped')
+                            .length
+                            .toString(),
+                        Color(0xFF8B5CF6),
                       ),
-                      _buildMiniStat('Selesai', 
-                        _orders.where((o) => o['status'] == 'completed').length.toString(),
-                        Color(0xFF10B981)
+                      _buildMiniStat(
+                        'Selesai',
+                        _orders
+                            .where((o) => o['status'] == 'completed')
+                            .length
+                            .toString(),
+                        Color(0xFF10B981),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            
+
             // Filter Chips
             Container(
               height: 60,
@@ -331,14 +357,19 @@ class _PesanState extends State<Pesan> {
                     },
                     child: Container(
                       margin: EdgeInsets.only(right: 10, top: 15),
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         gradient: _selectedFilter == index
                             ? LinearGradient(
                                 colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                               )
                             : null,
-                        color: _selectedFilter == index ? null : Color(0xFF1E293B),
+                        color: _selectedFilter == index
+                            ? null
+                            : Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(25),
                         border: _selectedFilter == index
                             ? null
@@ -347,8 +378,12 @@ class _PesanState extends State<Pesan> {
                       child: Text(
                         _filterOptions[index],
                         style: GoogleFonts.poppins(
-                          color: _selectedFilter == index ? Colors.white : Color(0xFF94A3B8),
-                          fontWeight: _selectedFilter == index ? FontWeight.w600 : FontWeight.w500,
+                          color: _selectedFilter == index
+                              ? Colors.white
+                              : Color(0xFF94A3B8),
+                          fontWeight: _selectedFilter == index
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           fontSize: 12,
                         ),
                       ),
@@ -357,9 +392,9 @@ class _PesanState extends State<Pesan> {
                 },
               ),
             ),
-            
+
             SizedBox(height: 10),
-            
+
             // Orders List
             Expanded(
               child: _filteredOrders.isEmpty
@@ -367,7 +402,11 @@ class _PesanState extends State<Pesan> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inbox_outlined, size: 80, color: Color(0xFF475569)),
+                          Icon(
+                            Icons.inbox_outlined,
+                            size: 80,
+                            color: Color(0xFF475569),
+                          ),
                           SizedBox(height: 20),
                           Text(
                             'Tidak ada pesanan',
@@ -388,7 +427,10 @@ class _PesanState extends State<Pesan> {
                       ),
                     )
                   : ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       itemCount: _filteredOrders.length,
                       itemBuilder: (context, index) {
                         return _buildOrderCard(index);
@@ -437,7 +479,7 @@ class _PesanState extends State<Pesan> {
   Widget _buildOrderCard(int index) {
     final order = _filteredOrders[index];
     final statusColor = _getStatusColor(order['status']);
-    
+
     return GestureDetector(
       onTap: () => _showOrderDetails(index),
       child: Container(
@@ -498,9 +540,9 @@ class _PesanState extends State<Pesan> {
                   ),
                 ],
               ),
-              
+
               SizedBox(height: 16),
-              
+
               // Customer Info
               Row(
                 children: [
@@ -550,9 +592,9 @@ class _PesanState extends State<Pesan> {
                   ),
                 ],
               ),
-              
+
               SizedBox(height: 16),
-              
+
               // Order Details
               Container(
                 padding: EdgeInsets.all(12),
@@ -627,9 +669,9 @@ class _PesanState extends State<Pesan> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 16),
-              
+
               // Quick Actions
               Row(
                 children: [
@@ -674,7 +716,7 @@ class _PesanState extends State<Pesan> {
   void _showUpdateStatusDialog(String orderId) {
     final currentOrder = _orders.firstWhere((order) => order['id'] == orderId);
     final currentStatus = currentOrder['status'];
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -719,8 +761,14 @@ class _PesanState extends State<Pesan> {
               ),
             ),
             SizedBox(height: 24),
-            
-            ...['pending', 'processed', 'shipped', 'completed', 'cancelled'].map((status) {
+
+            ...[
+              'pending',
+              'processed',
+              'shipped',
+              'completed',
+              'cancelled',
+            ].map((status) {
               return ListTile(
                 onTap: () {
                   if (status != currentStatus) {
@@ -734,10 +782,14 @@ class _PesanState extends State<Pesan> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: status == currentStatus ? _getStatusColor(status) : Color(0xFF475569),
+                      color: status == currentStatus
+                          ? _getStatusColor(status)
+                          : Color(0xFF475569),
                       width: 2,
                     ),
-                    color: status == currentStatus ? _getStatusColor(status) : Colors.transparent,
+                    color: status == currentStatus
+                        ? _getStatusColor(status)
+                        : Colors.transparent,
                   ),
                   child: status == currentStatus
                       ? Icon(Icons.check, size: 14, color: Colors.white)
@@ -745,9 +797,7 @@ class _PesanState extends State<Pesan> {
                 ),
                 title: Text(
                   _getStatusText(status),
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.poppins(color: Colors.white),
                 ),
                 trailing: Icon(
                   _getStatusIcon(status),
@@ -765,7 +815,7 @@ class _PesanState extends State<Pesan> {
     final order = _filteredOrders[index];
     final statusColor = _getStatusColor(order['status']);
     final currencyFormat = NumberFormat('#,###');
-    
+
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.all(24),
@@ -783,7 +833,7 @@ class _PesanState extends State<Pesan> {
               ),
             ),
             SizedBox(height: 20),
-            
+
             // Order Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -813,14 +863,21 @@ class _PesanState extends State<Pesan> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [statusColor.withOpacity(0.2), statusColor.withOpacity(0.1)],
+                      colors: [
+                        statusColor.withOpacity(0.2),
+                        statusColor.withOpacity(0.1),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: statusColor, width: 1),
                   ),
                   child: Row(
                     children: [
-                      Icon(_getStatusIcon(order['status']), color: statusColor, size: 18),
+                      Icon(
+                        _getStatusIcon(order['status']),
+                        color: statusColor,
+                        size: 18,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         _getStatusText(order['status']),
@@ -835,9 +892,9 @@ class _PesanState extends State<Pesan> {
                 ),
               ],
             ),
-            
+
             SizedBox(height: 32),
-            
+
             // Customer Info Card
             Container(
               padding: EdgeInsets.all(20),
@@ -857,7 +914,7 @@ class _PesanState extends State<Pesan> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  
+
                   _buildDetailRow('Nama', order['customer']),
                   _buildDetailRow('Email', order['email']),
                   _buildDetailRow('Telepon', order['phone']),
@@ -865,9 +922,9 @@ class _PesanState extends State<Pesan> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Order Items Card
             Container(
               padding: EdgeInsets.all(20),
@@ -887,7 +944,7 @@ class _PesanState extends State<Pesan> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  
+
                   ...order['items'].map<Widget>((item) {
                     return Container(
                       margin: EdgeInsets.only(bottom: 12),
@@ -906,10 +963,7 @@ class _PesanState extends State<Pesan> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
-                              child: Text(
-                                '📦',
-                                style: TextStyle(fontSize: 20),
-                              ),
+                              child: Text('📦', style: TextStyle(fontSize: 20)),
                             ),
                           ),
                           SizedBox(width: 12),
@@ -948,13 +1002,13 @@ class _PesanState extends State<Pesan> {
                       ),
                     );
                   }).toList(),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   Divider(color: Color(0xFF334155)),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -979,11 +1033,13 @@ class _PesanState extends State<Pesan> {
                 ],
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Payment & Shipping Info
             Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Agar kolom sejajar di atas
               children: [
                 Expanded(
                   child: Container(
@@ -993,6 +1049,8 @@ class _PesanState extends State<Pesan> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min, // Kolom hanya setinggi kontennya
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -1003,25 +1061,39 @@ class _PesanState extends State<Pesan> {
                                 color: Color(0xFF3B82F6).withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(Icons.payment, color: Color(0xFF3B82F6), size: 20),
+                              child: Icon(
+                                Icons.payment,
+                                color: Color(0xFF3B82F6),
+                                size: 20,
+                              ),
                             ),
                             SizedBox(width: 12),
-                            Text(
-                              'Pembayaran',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                'Pembayaran',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 12),
-                        Text(
-                          order['payment'],
-                          style: GoogleFonts.poppins(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 14,
+                        Container(
+                          constraints: BoxConstraints(
+                            minHeight: 40,
+                          ), // Minimal tinggi
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              order['payment'],
+                              style: GoogleFonts.poppins(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -1037,6 +1109,8 @@ class _PesanState extends State<Pesan> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min, // Kolom hanya setinggi kontennya
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -1047,25 +1121,39 @@ class _PesanState extends State<Pesan> {
                                 color: Color(0xFF8B5CF6).withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(Icons.local_shipping, color: Color(0xFF8B5CF6), size: 20),
+                              child: Icon(
+                                Icons.local_shipping,
+                                color: Color(0xFF8B5CF6),
+                                size: 20,
+                              ),
                             ),
                             SizedBox(width: 12),
-                            Text(
-                              'Pengiriman',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                'Pengiriman',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 12),
-                        Text(
-                          order['shipping'],
-                          style: GoogleFonts.poppins(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 14,
+                        Container(
+                          constraints: BoxConstraints(
+                            minHeight: 40,
+                          ), // Minimal tinggi
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              order['shipping'],
+                              style: GoogleFonts.poppins(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -1074,9 +1162,9 @@ class _PesanState extends State<Pesan> {
                 ),
               ],
             ),
-            
+
             SizedBox(height: 32),
-            
+
             // Action Buttons
             Row(
               children: [
@@ -1113,7 +1201,7 @@ class _PesanState extends State<Pesan> {
                 ),
               ],
             ),
-            
+
             SizedBox(height: 20),
           ],
         ),

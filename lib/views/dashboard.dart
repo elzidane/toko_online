@@ -222,7 +222,7 @@ class _DashboardState extends State<Dashboard>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 0),
                     SizedBox(
                       width: 120,
                       height: 48,
@@ -242,7 +242,7 @@ class _DashboardState extends State<Dashboard>
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Logout',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
