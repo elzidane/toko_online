@@ -4,7 +4,6 @@ import 'package:mobileapp2/views/mainScreen.dart';
 import 'package:mobileapp2/views/pesan.dart';
 import 'package:mobileapp2/views/register.dart';
 import 'package:mobileapp2/views/login.dart';
-import 'package:flutter/material.dart';
 import 'package:mobileapp2/views/toko.dart';
 import 'package:mobileapp2/widget/bottomnav.dart';
 import 'package:provider/provider.dart';
