@@ -7,9 +7,9 @@ class TokoModel {
   int? stok;
   int? harga;
   String? image;
-  String? kategori; // Tambahkan field kategori
-  double? rating; // Tambahkan field rating
-  int? terjual; // Tambahkan field terjual
+  String? kategori; 
+  double? rating;
+  int? terjual;
   
   TokoModel({
     this.id,
