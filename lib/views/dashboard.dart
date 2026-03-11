@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobileapp2/models/toko_model.dart';
 import 'package:mobileapp2/models/user_login.dart';
 import 'package:mobileapp2/providers/user_provider.dart';
-import 'package:mobileapp2/widget/user_info_card.dart';
+import 'package:mobileapp2/services/tokoService.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -14,92 +15,19 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard>
     with SingleTickerProviderStateMixin {
-  UserLogin userLogin = UserLogin();
+  final UserLogin _userLogin = UserLogin();
+  final TokoService _tokoService = TokoService();
+
   String? nama;
   String? role;
-  String? email;
   bool isLoading = true;
-  late AnimationController _animationController;
+  List<TokoModel> products = [];
+
+  late AnimationController _animController;
   late Animation<double> _fadeAnimation;
-  int _selectedTab = 0;
-  final PageController _pageController = PageController();
-  final ScrollController _scrollController = ScrollController();
 
-  List<Map<String, dynamic>> products = [
-    {
-      'id': 2,
-      'name': 'iPhone 15 Pro Max',
-      'price': 22000000,
-      'stock': 15,
-      'category': 'Elektronik',
-      'image': 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab',
-      'rating': 4.9,
-      'sold': 156,
-    },
-    {
-      'id': 3,
-      'name': 'Nike Air Max',
-      'price': 2500000,
-      'stock': 32,
-      'category': 'Fashion',
-      'image': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
-      'rating': 4.7,
-      'sold': 89,
-    },
-    {
-      'id': 4,
-      'name': 'Sony WH-1000XM5',
-      'price': 4500000,
-      'stock': 12,
-      'category': 'Audio',
-      'image': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-      'rating': 4.8,
-      'sold': 67,
-    },
-    {
-      'id': 5,
-      'name': 'Canon EOS R5',
-      'price': 55000000,
-      'stock': 5,
-      'category': 'Fotografi',
-      'image': 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32',
-      'rating': 4.9,
-      'sold': 23,
-    },
-  ];
-
-  List<Map<String, dynamic>> recentOrders = [
-    {
-      'id': '#ORD-001',
-      'customer': 'John Doe',
-      'amount': 27500000,
-      'status': 'Completed',
-      'date': 'Today, 10:30 AM',
-    },
-    {
-      'id': '#ORD-002',
-      'customer': 'Jane Smith',
-      'amount': 12500000,
-      'status': 'Processing',
-      'date': 'Today, 09:15 AM',
-    },
-    {
-      'id': '#ORD-003',
-      'customer': 'Robert Johnson',
-      'amount': 8500000,
-      'status': 'Pending',
-      'date': 'Yesterday, 4:30 PM',
-    },
-    {
-      'id': '#ORD-004',
-      'customer': 'Emily Wilson',
-      'amount': 32000000,
-      'status': 'Completed',
-      'date': 'Yesterday, 2:45 PM',
-    },
-  ];
-
-  List<Map<String, dynamic>> salesData = [
+  // Chart data statis (bisa diganti dari API jika tersedia)
+  final List<Map<String, dynamic>> salesData = [
     {'month': 'Jan', 'sales': 120},
     {'month': 'Feb', 'sales': 180},
     {'month': 'Mar', 'sales': 220},
@@ -111,781 +39,232 @@ class _DashboardState extends State<Dashboard>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
-    getUserLogin();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _animationController.forward();
-    });
+    _loadAll();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _pageController.dispose();
-    _scrollController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
-  getUserLogin() async {
-    var user = await userLogin.getUserLogin();
-    if (user.status != false && user.name != null) {
-      setState(() {
-        nama = user.name;
-        role = user.role;
-        email = user.email;
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      if (mounted) {
+  Future<void> _loadAll() async {
+    await Future.wait([_getUserLogin(), _getProducts()]);
+    if (mounted) _animController.forward();
+  }
+
+  Future<void> _getUserLogin() async {
+    var user = await _userLogin.getUserLogin();
+    if (mounted) {
+      if (user.status != false && user.name != null) {
+        setState(() {
+          nama = user.name;
+          role = user.role;
+          isLoading = false;
+        });
+      } else {
+        setState(() => isLoading = false);
         Navigator.pushReplacementNamed(context, '/login');
       }
     }
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
+  Future<void> _getProducts() async {
+    var result = await _tokoService.getToko();
+    if (mounted && result.status == true) {
+      setState(() {
+        products = List<TokoModel>.from(result.data ?? []);
+      });
+    }
+  }
+
+  // ── HELPER ────────────────────────────────────────────────
+  String fixImageUrl(String? image) {
+    if (image == null || image.isEmpty) return '';
+    if (image.startsWith('http')) return image;
+    return 'https://learn.smktelkom-mlg.sch.id/toko/$image';
+  }
+
+  String formatCurrency(int amount) {
+    if (amount >= 1000000000) {
+      return 'Rp ${(amount / 1000000000).toStringAsFixed(1)}M';
+    } else if (amount >= 1000000) {
+      return 'Rp ${(amount / 1000000).toStringAsFixed(1)}Jt';
+    } else if (amount >= 1000) {
+      return 'Rp ${(amount / 1000).toStringAsFixed(0)}rb';
+    }
+    return 'Rp $amount';
+  }
+
+  int get totalStok =>
+      products.fold(0, (sum, p) => sum + (p.stok ?? 0));
+
+  int get totalNilai =>
+      products.fold(0, (sum, p) => sum + ((p.harga ?? 0) * (p.stok ?? 0)));
+
+  int get hargaTertinggi => products.isEmpty
+      ? 0
+      : products.map((p) => p.harga ?? 0).reduce((a, b) => a > b ? a : b);
+
+  // ── LOGOUT DIALOG ─────────────────────────────────────────
+  void _showLogoutDialog() {
     showDialog(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF1E293B),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.logout, size: 48, color: Colors.red),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Konfirmasi Logout',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Apakah Anda yakin ingin keluar dari aplikasi?',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontFamily: 'poppins',
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey[600],
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Batal',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontFamily: 'poppins',
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 0),
-                    SizedBox(
-                      width: 120,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          // Clear user login data
-                          await userLogin.clearUserLogin();
-
-                          // Navigate to login page
-                          if (mounted) {
-                            Navigator.pushReplacementNamed(context, '/login');
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontFamily: 'poppins',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showAddProductDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, controller) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E293B),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12, bottom: 20),
-                    width: 60,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Tambah Produk Baru',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      controller: controller,
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          _buildFormField(
-                            icon: Icons.shopping_bag,
-                            label: 'Nama Produk',
-                            hint: 'Masukkan nama produk',
-                            keyboardType: TextInputType.text,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFormField(
-                            icon: Icons.attach_money,
-                            label: 'Harga',
-                            hint: 'Masukkan harga',
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFormField(
-                            icon: Icons.inventory,
-                            label: 'Stok',
-                            hint: 'Masukkan jumlah stok',
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFormField(
-                            icon: Icons.category,
-                            label: 'Kategori',
-                            hint: 'Masukkan kategori',
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFormField(
-                            icon: Icons.link,
-                            label: 'URL Gambar',
-                            hint: 'Masukkan URL gambar produk',
-                          ),
-                          const SizedBox(height: 30),
-                          Container(
-                            height: 180,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.cloud_upload,
-                                  size: 48,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Upload Gambar Produk',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'poppins',
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Drag & drop atau klik untuk upload',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontFamily: 'poppins',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                _showSuccessDialog();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6366F1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                'Simpan Produk',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black54,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 48,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Produk Berhasil Ditambahkan!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Produk telah berhasil ditambahkan ke katalog.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: 200,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Tutup',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFormField({
-    required IconData icon,
-    required String label,
-    required String hint,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 20, color: const Color(0xFF6366F1)),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-                fontFamily: 'poppins',
-                color: Colors.white
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!, width: 1.5),
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
           ),
-          child: TextField(
-            keyboardType: keyboardType,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: Colors.grey[600],
-                fontFamily: 'poppins'
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-    double? percentChange,
-  }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-                if (percentChange != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: percentChange > 0
-                          ? Colors.green.withOpacity(0.15)
-                          : Colors.red.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          percentChange > 0
-                              ? Icons.trending_up
-                              : Icons.trending_down,
-                          size: 14,
-                          color: percentChange > 0 ? Colors.green : Colors.red,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${percentChange > 0 ? '+' : ''}${percentChange.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: percentChange > 0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-                fontFamily: 'Poppins',
+                child: const Icon(Icons.logout_rounded,
+                    size: 32, color: Colors.red),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-                color: Colors.white
+              const SizedBox(height: 20),
+              const Text('Konfirmasi Logout',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Poppins',
+                      color: Colors.white)),
+              const SizedBox(height: 10),
+              Text(
+                'Apakah kamu yakin ingin keluar?',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.6),
+                    fontFamily: 'Poppins'),
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> product) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 20,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: Colors.grey[100]!, width: 1),
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
+              const SizedBox(height: 28),
+              Row(
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: NetworkImage(product['image']),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product['name'],
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Rp ${_formatCurrency(product['price'])}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF6366F1),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _buildTag(product['category'], Colors.blue),
-                            const SizedBox(width: 8),
-                            _buildTag(
-                              'Stok: ${product['stock']}',
-                              Colors.green,
-                            ),
-                            const SizedBox(width: 8),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: Colors.amber,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(product['rating'].toString()),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                            color: Colors.white.withOpacity(0.15)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text('Batal',
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.6),
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600)),
                     ),
                   ),
-                  Column(
-                    children: [
-                      IconButton(
-                        onPressed: () => _showEditProductDialog(product),
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            size: 20,
-                            color: Colors.blue,
-                          ),
-                        ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _userLogin.clearUserLogin();
+                        if (mounted) {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      IconButton(
-                        onPressed: () => _showDeleteConfirmation(product['id']),
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.delete,
-                            size: 20,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
+                      child: const Text('Logout',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600)),
+                    ),
                   ),
                 ],
               ),
-            ),
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: product['stock'] > 10
-                      ? Colors.green.withOpacity(0.15)
-                      : Colors.orange.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  product['stock'] > 10 ? 'In Stock' : 'Low Stock',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: product['stock'] > 10 ? Colors.green : Colors.orange,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTag(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          color: color,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  String _formatCurrency(int amount) {
-    return amount.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    );
-  }
-
-  void _showEditProductDialog(Map<String, dynamic> product) {
-    // Implement edit dialog similar to add product
-  }
-
-  void _showDeleteConfirmation(int productId) {
-    // Implement delete confirmation
-  }
-
+  // ── BUILD ─────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      backgroundColor: Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF1E293B),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF6366F1)),
-            )
+              child: CircularProgressIndicator(
+                  color: Color(0xFF6366F1), strokeWidth: 2))
           : FadeTransition(
               opacity: _fadeAnimation,
               child: CustomScrollView(
-                controller: _scrollController,
                 slivers: [
+                  // ── APP BAR ──
                   SliverAppBar(
                     automaticallyImplyLeading: false,
                     expandedHeight: 60,
                     collapsedHeight: 60,
                     floating: true,
                     pinned: true,
-                    backgroundColor: Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFF1E293B),
                     elevation: 0,
                     flexibleSpace: FlexibleSpaceBar(
-                      titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                      titlePadding:
+                          const EdgeInsets.only(left: 20, bottom: 12),
                       title: Row(
                         children: [
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: 38,
+                            height: 38,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                              ),
+                              borderRadius: BorderRadius.circular(11),
+                              gradient: const LinearGradient(colors: [
+                                Color(0xFF6366F1),
+                                Color(0xFF8B5CF6)
+                              ]),
                             ),
-                            child: const Icon(
-                              Icons.dashboard,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                            child: const Icon(Icons.dashboard_rounded,
+                                color: Colors.white, size: 20),
                           ),
                           const SizedBox(width: 12),
                           const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Dashboard',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins',
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                'Overview & Analytics',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontFamily: 'poppins'
-                                ),
-                              ),
+                              Text('Dashboard',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Poppins',
+                                      color: Colors.white)),
+                              Text('Overview & Analytics',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                      fontFamily: 'Poppins')),
                             ],
                           ),
                         ],
@@ -893,334 +272,508 @@ class _DashboardState extends State<Dashboard>
                     ),
                     actions: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: _showLogoutDialog,
                         icon: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: Colors.red.withOpacity(0.2)),
                           ),
-                          child: const Icon(
-                            Icons.notifications,
-                            color: Colors.grey,
-                          ),
+                          child: const Icon(Icons.logout_rounded,
+                              color: Colors.red, size: 18),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () => _showLogoutConfirmation(context),
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.red[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.logout_outlined,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 12),
                     ],
                   ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          // Welcome Section
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                              ),
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF6366F1,
-                                  ).withOpacity(0.3),
-                                  blurRadius: 30,
-                                  spreadRadius: 5,
-                                ),
-                              ],
+
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // ── WELCOME CARD ──
+                        _buildWelcomeCard(userProvider),
+                        const SizedBox(height: 24),
+
+                        // ── STAT GRID ──
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 1.0,
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.shopping_bag_outlined,
+                              title: 'Total Produk',
+                              value: products.length.toString(),
+                              color: const Color(0xFF6366F1),
+                              sub: 'item terdaftar',
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Selamat datang kembali,',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white.withOpacity(0.9),
-                                          fontFamily: 'Poppins',
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        userProvider.userName ?? 'Admin',
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          fontFamily: 'Poppins',
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.verified,
-                                              size: 14,
-                                              color: Colors.white,
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              role?.toUpperCase() ?? 'ADMIN',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 3,
-                                    ),
-                                    image: const DecorationImage(
-                                      image: AssetImage(
-                                        'assets/images/profile.png',
-                                      ),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            _buildStatCard(
+                              icon: Icons.inventory_2_outlined,
+                              title: 'Total Stok',
+                              value: totalStok.toString(),
+                              color: const Color(0xFF10B981),
+                              sub: 'unit tersedia',
                             ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Stats Grid
-                          GridView.count(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.95,
-                            children: [
-                              _buildStatCard(
-                                icon: Icons.shopping_bag,
-                                title: 'Total Produk',
-                                value: products.length.toString(),
-                                color: const Color(0xFF6366F1),
-                                percentChange: 12.5,
-                              ),
-                              _buildStatCard(
-                                icon: Icons.shopping_cart_checkout,
-                                title: 'Total Penjualan',
-                                value: '156',
-                                color: const Color(0xFF10B981),
-                                percentChange: 8.2,
-                              ),
-                              _buildStatCard(
-                                icon: Icons.attach_money,
-                                title: 'Revenue',
-                                value: 'Rp 2.5M',
-                                color: const Color(0xFFF59E0B),
-                                percentChange: 15.3,
-                              ),
-                              _buildStatCard(
-                                icon: Icons.people,
-                                title: 'Customers',
-                                value: '1.2K',
-                                color: const Color(0xFF8B5CF6),
-                                percentChange: 5.7,
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Sales Chart
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Color(0xFF8B5CF6).withOpacity(0.10),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.10)
-                              ),
-                              // boxShadow: [
-                              //   BoxShadow(
-                              //     color: Colors.white.withOpacity(0.1),
-                              //     blurRadius: 20,
-                              //     spreadRadius: 2,
-                              //   ),
-                              // ],
+                            _buildStatCard(
+                              icon: Icons.trending_up_rounded,
+                              title: 'Harga Tertinggi',
+                              value: formatCurrency(hargaTertinggi),
+                              color: const Color(0xFFF59E0B),
+                              sub: 'per produk',
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Sales Overview',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'Poppins',
-                                        color: Colors.white
-                                      ),
-                                    ),
-                                    Icon(Icons.more_vert, color: Colors.white),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  height: 200,
-                                  child: LineChart(
-                                    LineChartData(
-                                      gridData: FlGridData(show: false),
-                                      titlesData: FlTitlesData(show: false),
-                                      borderData: FlBorderData(show: false),
-                                      lineBarsData: [
-                                        LineChartBarData(
-                                          spots: salesData.asMap().entries.map((
-                                            entry,
-                                          ) {
-                                            return FlSpot(
-                                              entry.key.toDouble(),
-                                              entry.value['sales'].toDouble(),
-                                            );
-                                          }).toList(),
-                                          isCurved: true,
-                                          color: Colors.white,
-                                          barWidth: 4,
-                                          isStrokeCapRound: true,
-                                          belowBarData: BarAreaData(
-                                            show: true,
-                                            color: Colors.white
-                                            .withOpacity(0.1),
-                                          ),
-                                          dotData: FlDotData(show: false),
-                                        ),
-                                      ],
-                                      minX: 0,
-                                      maxX: salesData.length.toDouble() - 1,
-                                      minY: 1,
-                                      maxY: 500,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: salesData
-                                      .map(
-                                        (data) => Text(
-                                          data['month'],
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontFamily: 'poppins'
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ],
+                            _buildStatCard(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: 'Nilai Inventori',
+                              value: formatCurrency(totalNilai),
+                              color: const Color(0xFF8B5CF6),
+                              sub: 'total aset',
                             ),
-                          ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
 
-                          // const SizedBox(height: 24),
+                        // ── CHART ──
+                        _buildChart(),
+                        const SizedBox(height: 24),
 
-                          // Products Header
-                          // Row(
-                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //   children: [
-                          //     const Text(
-                          //       'Produk Terbaru',
-                          //       style: TextStyle(
-                          //         fontSize: 18,
-                          //         fontWeight: FontWeight.bold,
-                          //         fontFamily: 'Poppins',
-                          //       ),
-                          //     ),
-                          //     ElevatedButton.icon(
-                          //       onPressed: _showAddProductDialog,
-                          //       icon: const Icon(Icons.add, size: 18),
-                          //       label: const Text('Tambah Produk'),
-                          //       style: ElevatedButton.styleFrom(
-                          //         backgroundColor: const Color(0xFF6366F1),
-                          //         foregroundColor: Colors.white,
-                          //         shape: RoundedRectangleBorder(
-                          //           borderRadius: BorderRadius.circular(12),
-                          //         ),
-                          //         padding: const EdgeInsets.symmetric(
-                          //           horizontal: 20,
-                          //           vertical: 12,
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
+                        // ── PRODUK TERBARU ──
+                        _buildSectionHeader('Produk Terbaru', products.length),
+                        const SizedBox(height: 14),
 
-                          const SizedBox(height: 16),
-
-                          // Products List
-                          // ...products.map(_buildProductCard).toList(),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+                        if (products.isEmpty)
+                          _buildEmptyState()
+                        else
+                          ...products
+                              .take(5)
+                              .map((p) => _buildProductCard(p))
+                              .toList(),
+                      ]),
                     ),
                   ),
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddProductDialog,
-        backgroundColor: const Color(0xFF6366F1),
-        foregroundColor: Colors.white,
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Produk'),
+    );
+  }
+
+  // ── WELCOME CARD ──────────────────────────────────────────
+  Widget _buildWelcomeCard(UserProvider userProvider) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selamat datang,',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.85),
+                      fontFamily: 'Poppins'),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  userProvider.userName ?? nama ?? 'Admin',
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      fontFamily: 'Poppins',
+                      letterSpacing: -0.3),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.verified_rounded,
+                          size: 13, color: Colors.white),
+                      const SizedBox(width: 5),
+                      Text(
+                        role?.toUpperCase() ?? 'ADMIN',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontFamily: 'Poppins'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.15),
+              border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+            ),
+            child: const Icon(Icons.person_rounded,
+                color: Colors.white, size: 32),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── STAT CARD ─────────────────────────────────────────────
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+    String? sub,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color.withOpacity(0.15), color.withOpacity(0.06)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                fontFamily: 'Poppins',
+                letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 3),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.7),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w500)),
+          if (sub != null) ...[
+            const SizedBox(height: 1),
+            Text(sub,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: color.withOpacity(0.8),
+                    fontFamily: 'Poppins')),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── CHART ─────────────────────────────────────────────────
+  Widget _buildChart() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF8B5CF6).withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border:
+            Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Sales Overview',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Poppins',
+                      color: Colors.white)),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('6 Bulan',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6366F1),
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 180,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(show: false),
+                titlesData: FlTitlesData(show: false),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: salesData.asMap().entries.map((e) {
+                      return FlSpot(
+                          e.key.toDouble(),
+                          (e.value['sales'] as int).toDouble());
+                    }).toList(),
+                    isCurved: true,
+                    color: const Color(0xFF6366F1),
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          const Color(0xFF6366F1).withOpacity(0.3),
+                          const Color(0xFF6366F1).withOpacity(0.0),
+                        ],
+                      ),
+                    ),
+                    dotData: FlDotData(show: false),
+                  ),
+                ],
+                minX: 0,
+                maxX: (salesData.length - 1).toDouble(),
+                minY: 0,
+                maxY: 500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: salesData
+                .map((d) => Text(d['month'],
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.5),
+                        fontFamily: 'Poppins')))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── SECTION HEADER ────────────────────────────────────────
+  Widget _buildSectionHeader(String title, int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title,
+            style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Poppins',
+                color: Colors.white)),
+        Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6366F1).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text('$count produk',
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF6366F1),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600)),
+        ),
+      ],
+    );
+  }
+
+  // ── PRODUCT CARD ──────────────────────────────────────────
+  Widget _buildProductCard(TokoModel item) {
+    final imageUrl = fixImageUrl(item.image);
+    final isLowStock = (item.stok ?? 0) <= 10;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF334155),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Colors.white.withOpacity(0.07), width: 1),
+      ),
+      child: Row(
+        children: [
+          // Gambar
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF6366F1).withOpacity(0.1),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: imageUrl.isEmpty
+                  ? const Icon(Icons.shopping_bag_outlined,
+                      color: Color(0xFF6366F1), size: 28)
+                  : Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                          Icons.broken_image_outlined,
+                          color: Color(0xFF6366F1),
+                          size: 28),
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : const Center(
+                              child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF6366F1)))),
+                    ),
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.nama_barang ?? '-',
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontFamily: 'Poppins'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.kategori ?? 'Tanpa Kategori',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withOpacity(0.45),
+                      fontFamily: 'Poppins'),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      'Rp ${item.harga ?? 0}',
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF10B981),
+                          fontFamily: 'Poppins'),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isLowStock
+                            ? Colors.orange.withOpacity(0.15)
+                            : Colors.green.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${item.stok ?? 0} stok',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isLowStock
+                                ? Colors.orange
+                                : Colors.green,
+                            fontFamily: 'Poppins'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── EMPTY STATE ───────────────────────────────────────────
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: const Color(0xFF334155),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.07)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.inbox_outlined,
+              color: Color(0xFF6366F1), size: 40),
+          const SizedBox(height: 12),
+          const Text('Belum ada produk',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  fontFamily: 'Poppins')),
+          const SizedBox(height: 6),
+          Text('Data produk akan tampil di sini',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.5),
+                  fontFamily: 'Poppins')),
+        ],
       ),
     );
   }

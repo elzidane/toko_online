@@ -34,4 +34,6 @@ class TokoModel {
     rating = parsedJson['rating'];
     terjual = parsedJson['terjual'];
   }
+
+  operator [](String other) {}
 }

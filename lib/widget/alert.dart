@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AlertMassage {
-  void showAlert(BuildContext context, String message, bool status,
-      {Duration? duration, VoidCallback? onClose}) {
+  void showAlert(
+    BuildContext context,
+    String message,
+    bool status, {
+    Duration? duration,
+    VoidCallback? onClose,
+  }) {
     final Color backgroundColor;
     final Color primaryColor;
     final Color textColor;
@@ -56,10 +61,8 @@ class AlertMassage {
       ),
     );
 
-    
     overlay.insert(overlayEntry);
 
-    
     Future.delayed(duration ?? const Duration(seconds: 4), () {
       if (overlayEntry.mounted) {
         handleClose();
@@ -67,9 +70,12 @@ class AlertMassage {
     });
   }
 
-  
-  void showSnackBarAlert(BuildContext context, String message, bool status,
-      {Duration? duration}) {
+  void showSnackBarAlert(
+    BuildContext context,
+    String message,
+    bool status, {
+    Duration? duration,
+  }) {
     final Color backgroundColor;
     final Color iconColor;
     final IconData icon;
@@ -87,9 +93,7 @@ class AlertMassage {
     final snackBar = SnackBar(
       backgroundColor: backgroundColor,
       elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -114,10 +118,7 @@ class AlertMassage {
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -136,17 +137,21 @@ class AlertMassage {
       action: SnackBarAction(
         label: 'DISMISS',
         textColor: Colors.white,
-        onPressed: () =>
-            ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+        onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
       ),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  
-  void showDialogAlert(BuildContext context, String message, bool status,
-      {String? title, String? confirmText, VoidCallback? onConfirm}) {
+  void showDialogAlert(
+    BuildContext context,
+    String message,
+    bool status, {
+    String? title,
+    String? confirmText,
+    VoidCallback? onConfirm,
+  }) {
     final Color primaryColor = status ? Colors.green : Colors.red;
     final IconData icon = status ? Icons.check_circle : Icons.error;
 
@@ -154,9 +159,7 @@ class AlertMassage {
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         child: Container(
@@ -183,11 +186,7 @@ class AlertMassage {
                   color: primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 48,
-                  color: primaryColor,
-                ),
+                child: Icon(icon, size: 48, color: primaryColor),
               ),
               const SizedBox(height: 20),
               // Title
@@ -265,8 +264,40 @@ class AlertMassage {
       ),
     );
   }
-}
 
+  Future showAlertDialog(BuildContext context) async {
+    Widget cancelButton = MaterialButton(
+      shape: BeveledRectangleBorder(side: BorderSide(color: Colors.red),),
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.of(context).pop({"status": false});
+      },
+    );
+
+    Widget continueButton = MaterialButton(
+      shape: BeveledRectangleBorder(side: BorderSide(color: Colors.green),),
+      child: Text("Continue"),
+      onPressed: () {
+        Navigator.of(context).pop({"status": true});
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("AlertDialog"),
+      content: Text("Are you sure you want to continue?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+}
 
 class _FadeInAlert extends StatefulWidget {
   final Color backgroundColor;
@@ -303,10 +334,7 @@ class __FadeInAlertState extends State<_FadeInAlert>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     _controller.forward();
   }
 
@@ -336,7 +364,6 @@ class __FadeInAlertState extends State<_FadeInAlert>
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-           
             Container(
               width: 40,
               height: 40,
@@ -344,14 +371,10 @@ class __FadeInAlertState extends State<_FadeInAlert>
                 color: widget.primaryColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                widget.icon,
-                color: widget.primaryColor,
-                size: 24,
-              ),
+              child: Icon(widget.icon, color: widget.primaryColor, size: 24),
             ),
             const SizedBox(width: 16),
-            
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,10 +390,7 @@ class __FadeInAlertState extends State<_FadeInAlert>
                   const SizedBox(height: 4),
                   Text(
                     widget.message,
-                    style: TextStyle(
-                      color: widget.textColor,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: widget.textColor, fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -378,7 +398,7 @@ class __FadeInAlertState extends State<_FadeInAlert>
               ),
             ),
             const SizedBox(width: 12),
-            
+
             GestureDetector(
               onTap: widget.onClose,
               child: Container(
@@ -388,11 +408,7 @@ class __FadeInAlertState extends State<_FadeInAlert>
                   color: widget.primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.close,
-                  color: widget.primaryColor,
-                  size: 18,
-                ),
+                child: Icon(Icons.close, color: widget.primaryColor, size: 18),
               ),
             ),
           ],
@@ -402,11 +418,10 @@ class __FadeInAlertState extends State<_FadeInAlert>
   }
 }
 
-
 class ToastNotification {
   static void show(BuildContext context, String message, bool isSuccess) {
     final Color color = isSuccess ? Colors.green : Colors.red;
-    
+
     OverlayEntry overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         top: MediaQuery.of(context).padding.top + 20,
@@ -437,10 +452,7 @@ class ToastNotification {
                 Expanded(
                   child: Text(
                     message,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                     maxLines: 2,
                   ),
                 ),
@@ -450,9 +462,9 @@ class ToastNotification {
         ),
       ),
     );
-    
+
     Overlay.of(context).insert(overlayEntry);
-    
+
     Future.delayed(const Duration(seconds: 3), () {
       overlayEntry.remove();
     });
