@@ -40,7 +40,8 @@ class TokoService {
       );
     }
   }
-
+  //menamah barang
+  //membuat fungsi untuk insert dan update
   Future insertToko(request, image, id) async {
     var user = await UserLogin().getUserLogin();
     if (user.status == false) {
@@ -108,6 +109,8 @@ class TokoService {
     }
   }
 
+  //hapus barang
+  //membuat fungsi untuk hapus barang
   Future deleteToko(context, id) async {
     var user = await UserLogin().getUserLogin();
     if (user.status == false) {
@@ -116,7 +119,7 @@ class TokoService {
         message: 'anda belum login / token invalid',
       );
     }
-
+    //hapus barang berdasarkan id
     var uri = Uri.parse(url.BaseUrl + "/admin/hapusbarang/$id");
     Map<String, String> headers = {
       "Authorization": 'Bearer ${user.token}',
