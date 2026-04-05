@@ -1246,7 +1246,7 @@ class _PesanState extends State<Pesan> with TickerProviderStateMixin {
 
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 12),
           child: SingleChildScrollView(
             child: Container(
               height: 480,
