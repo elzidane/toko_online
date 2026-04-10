@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobileapp2/views/dashboard_user.dart';
 import 'package:provider/provider.dart';
 import 'package:mobileapp2/models/user_login.dart';
 import 'package:mobileapp2/providers/user_provider.dart';
@@ -48,7 +49,7 @@ class _BottomnavState extends State<Bottomnav> {
         ),
       ];
     } else if (role == 'user') {
-      navbar = [Dashboard(), Pesan()];
+      navbar = [DashboardUser(), Pesan()];
       navbarItems = [
         const BottomNavigationBarItem(
           icon: Icon(Icons.home),

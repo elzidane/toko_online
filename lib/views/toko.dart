@@ -850,15 +850,18 @@ class _TokoState extends State<Toko> with TickerProviderStateMixin {
                 ),
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  _sortChip('Semua', 'default', Icons.apps_rounded),
-                  _sortChip('Harga ↑', 'harga_asc',
-                      Icons.arrow_upward_rounded),
-                  _sortChip('Harga ↓', 'harga_desc',
-                      Icons.arrow_downward_rounded),
-                  _sortChip('Stok', 'stok', Icons.inventory_rounded),
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _sortChip('Semua', 'default', Icons.apps_rounded),
+                    _sortChip('Harga ↑', 'harga_asc',
+                        Icons.arrow_upward_rounded),
+                    _sortChip('Harga ↓', 'harga_desc',
+                        Icons.arrow_downward_rounded),
+                    _sortChip('Stok', 'stok', Icons.inventory_rounded),
+                  ],
+                ),
               ),
             ],
           ),
@@ -879,7 +882,7 @@ class _TokoState extends State<Toko> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.only(right: 8),
         padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           gradient: active
               ? const LinearGradient(colors: [_primary, _accent])
@@ -943,7 +946,7 @@ class _TokoState extends State<Toko> with TickerProviderStateMixin {
           crossAxisCount: 2,
           mainAxisSpacing: 14,
           crossAxisSpacing: 14,
-          childAspectRatio: 0.69,
+          childAspectRatio: 0.63,
         ),
         delegate: SliverChildBuilderDelegate(
           (_, i) => _buildGridCard(_filtered![i], i),

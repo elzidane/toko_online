@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobileapp2/providers/cartProvider.dart';
 import 'package:mobileapp2/views/dashboard.dart';
 import 'package:mobileapp2/views/mainScreen.dart';
 import 'package:mobileapp2/views/pesan.dart';
@@ -14,6 +15,8 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(
           create: (_) => UserProvider()..loadUserFromStorage(),
         ),
@@ -26,7 +29,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
