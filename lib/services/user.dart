@@ -138,7 +138,15 @@ class UserService {
       // print('STATUS: ${res.statusCode}');
       // print('BODY: ${res.body}');
 
-      final body = json.decode(res.body);
+      dynamic body;
+      try {
+        body = json.decode(res.body);
+      } catch (e) {
+        return ResponseDataMap(
+          status: false,
+          message: 'Error API: ${res.body.length > 100 ? res.body.substring(0, 100) : res.body}',
+        );
+      }
 
       // Handle berbagai format response sukses dari API
       final isSuccess = (res.statusCode == 200 || res.statusCode == 201) &&
@@ -176,7 +184,7 @@ class UserService {
   Future<ResponseDataList> getRiwayatTransaksi() async {
     try {
       final token = await _getToken();
-      final uri   = Uri.parse('${url.BaseUrl}/user/transaksi');
+      final uri   = Uri.parse('${url.BaseUrl}/user/history_trans');
       final res   = await http
           .get(uri, headers: _authHeaders(token))
           .timeout(const Duration(seconds: 10));
