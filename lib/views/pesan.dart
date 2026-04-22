@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobileapp2/providers/cartProvider.dart';
+import 'package:mobileapp2/services/tokoService.dart';
 import 'package:mobileapp2/services/user.dart';
 import 'package:provider/provider.dart';
 
@@ -2037,16 +2038,70 @@ class _CheckoutSheetState extends State<_CheckoutSheet>
     final pesanList = List<Map<String, dynamic>>.from(cart.toPesanList());
     final result = await widget.service.buatTransaksi(pesanList);
     if (!mounted) return;
-    setState(() => _isLoading = false);
-    if (result.status) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onSuccess?.call(pesanList);
+    if (!result.status) {
+      setState(() {
+        _isLoading = false;
+        _errMsg = result.message;
       });
-      cart.clear();
-      setState(() => _success = true);
-      _successAnim.forward();
-    } else {
-      setState(() => _errMsg = result.message);
+      return;
+    }
+
+    final tokoService = TokoService();
+    bool stockSyncOk = true;
+
+    for (final pesan in pesanList) {
+      final barangId = int.tryParse(pesan['barang_id'].toString()) ?? 0;
+      final qty = (pesan['qty'] is int)
+          ? pesan['qty'] as int
+          : int.tryParse(pesan['qty'].toString()) ?? 1;
+
+      final cartItem = cart.items.firstWhere(
+        (i) => i.id == barangId,
+        orElse: () => CartItem(
+          id: 0,
+          nama: '',
+          harga: 0,
+          stokMax: 0,
+        ),
+      );
+      if (cartItem.id == 0) {
+        stockSyncOk = false;
+        continue;
+      }
+
+      final currentStok = cartItem.stokMax;
+      final updatedStok = (currentStok - qty).clamp(0, 999999);
+      final updateRequest = {
+        'nama_barang': cartItem.nama,
+        'deskripsi': '',
+        'stok': updatedStok,
+        'harga': cartItem.harga,
+        'kategori': cartItem.kategori ?? '',
+      };
+
+      final updateResult = await tokoService.insertToko(updateRequest, null, barangId);
+      if (!updateResult.status) {
+        stockSyncOk = false;
+      }
+    }
+
+    setState(() {
+      _isLoading = false;
+      _success = true;
+    });
+
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onSuccess?.call(pesanList);
+    });
+
+    cart.clear();
+    _successAnim.forward();
+
+    if (!stockSyncOk) {
+      setState(() {
+        _errMsg = 'Transaksi berhasil, tetapi stok belum terupdate ke server.';
+      });
     }
   }
 
